@@ -4,6 +4,11 @@ on:
   repository_dispatch:
     types: [test-webhook]
   workflow_dispatch:
+    inputs:
+      message:
+        description: 'Test message'
+        required: false
+        default: 'Hello from manual trigger!'
 
 jobs:
   hello:
@@ -11,11 +16,16 @@ jobs:
     steps:
     - name: Say Hello
       run: |
-        echo "🎉 Hello World! Webhook received successfully!"
-        echo "Event type: ${{ github.event.action }}"
+        echo "🎉 Hello World! Workflow triggered successfully!"
+        echo "Event type: ${{ github.event_name }}"
         echo "Repository: ${{ github.repository }}"
         echo "Triggered by: ${{ github.actor }}"
         echo "Timestamp: $(date)"
+        
+    - name: Show manual input
+      if: github.event_name == 'workflow_dispatch'
+      run: |
+        echo "Manual trigger message: ${{ github.event.inputs.message }}"
         
     - name: Show webhook payload
       if: github.event_name == 'repository_dispatch'
