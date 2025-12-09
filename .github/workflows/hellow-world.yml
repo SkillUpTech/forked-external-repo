@@ -1,0 +1,24 @@
+name: Hello World Webhook Test
+
+on:
+  repository_dispatch:
+    types: [test-webhook]
+  workflow_dispatch:
+
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Say Hello
+      run: |
+        echo "🎉 Hello World! Webhook received successfully!"
+        echo "Event type: ${{ github.event.action }}"
+        echo "Repository: ${{ github.repository }}"
+        echo "Triggered by: ${{ github.actor }}"
+        echo "Timestamp: $(date)"
+        
+    - name: Show webhook payload
+      if: github.event_name == 'repository_dispatch'
+      run: |
+        echo "Webhook payload received:"
+        echo '${{ toJson(github.event.client_payload) }}'
