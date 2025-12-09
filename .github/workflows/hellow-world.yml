@@ -2,7 +2,7 @@ name: Hello World Webhook Test
 
 on:
   repository_dispatch:
-    types: [test-webhook]
+    types: [upstream-push]
   workflow_dispatch:
     inputs:
       message:

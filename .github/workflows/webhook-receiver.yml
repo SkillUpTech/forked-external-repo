@@ -1,0 +1,46 @@
+name: Webhook Receiver
+
+on:
+  repository_dispatch:
+    types: [upstream-push]
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Configure Git
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        
+    - name: Sync with upstream
+      run: |
+        echo "🔄 Webhook received from upstream repository"
+        echo "Syncing dev branch with upstream changes..."
+        
+        # Add upstream remote
+        git remote add upstream https://github.com/rrochati/external-repo-test.git
+        git fetch upstream
+        
+        # Switch to dev branch
+        git checkout dev || git checkout -b dev origin/dev
+        
+        # Merge upstream changes
+        if git merge upstream/main --no-edit; then
+          git push origin dev
+          echo "✅ Successfully synced dev branch"
+        else
+          echo "❌ Merge conflict detected"
+          git merge --abort
+          echo "Creating conflict resolution branch..."
+          BRANCH_NAME="resolve-conflict-$(date +%Y%m%d-%H%M%S)"
+          git checkout -b $BRANCH_NAME
+          git push origin $BRANCH_NAME
+        fi
