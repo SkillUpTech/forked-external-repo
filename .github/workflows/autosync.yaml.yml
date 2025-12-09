@@ -1,0 +1,37 @@
+name: Auto Sync with Upstream
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Every 5 minutes
+  workflow_dispatch:
+
+jobs:
+  check-and-sync:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Check for upstream changes
+      id: check
+      run: |
+        git remote add upstream https://github.com/rrochati/external-repo-test.git
+        git fetch upstream
+        git checkout dev || git checkout -b dev origin/dev
+        
+        if ! git merge-base --is-ancestor upstream/main HEAD; then
+          echo "needs_sync=true" >> $GITHUB_OUTPUT
+          echo "📝 New commits detected in upstream"
+        else
+          echo "needs_sync=false" >> $GITHUB_OUTPUT
+          echo "✅ Already up to date"
+        fi
+        
+    - name: Sync changes
+      if: steps.check.outputs.needs_sync == 'true'
+      run: |
+        git merge upstream/main --no-edit
+        git push origin dev
+        echo "✅ Synced dev branch with upstream"
