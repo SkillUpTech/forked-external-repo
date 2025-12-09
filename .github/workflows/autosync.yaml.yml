@@ -28,7 +28,13 @@ jobs:
           echo "needs_sync=false" >> $GITHUB_OUTPUT
           echo "✅ Already up to date"
         fi
-        
+    
+    - name: Configure Git
+      if: steps.check.outputs.needs_sync == 'true'
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.com"
+
     - name: Sync changes
       if: steps.check.outputs.needs_sync == 'true'
       run: |
